@@ -1,4 +1,4 @@
-FROM node:6.5
+FROM node:alpine
 COPY ./resource /opt
 RUN \
 	cd /opt/resource && \
