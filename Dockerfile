@@ -1,5 +1,5 @@
 FROM node:alpine
-ADD ./resource/ /opt/
+COPY ./resource/ /opt/
 RUN \
 	cd /opt/resource && \
 	npm install
