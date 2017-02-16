@@ -1,0 +1,30 @@
+#!/usr/local/bin/node --harmony
+const fs = require('fs')
+const path = require('path')
+const request = require('request')
+
+const outDir = process.argv[2]
+const args = JSON.parse(fs.readFileSync('/dev/stdin').toString())
+
+request({
+  url: args.version.url,
+  encoding: null
+}, function (error, response, body) {
+  if (error)
+    throw new Error('Failed to fetch bob the builder: ' + error)
+  if (response.statusCode != 200)
+    throw new Error('Failed to fetch bob the builder, http status = ' + response.statusCode)
+
+  fs.writeFileSync(path.join(outDir, path.basename(args.version.url)), body, {
+    encoding: null,
+    flag: 'wb'
+  })
+
+  fs.writeFileSync(path.join(outDir, 'tag'), args.version.tag)
+  fs.writeFileSync(path.join(outDir, 'commit'), args.version.commit)
+
+  process.stdout.write(JSON.stringify({
+    version: args.version,
+    metadata: []
+  }))
+}

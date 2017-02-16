@@ -1,0 +1,38 @@
+#!/usr/local/bin/node --harmony
+const fs = require('fs')
+const url = require('url')
+const cheerio = require('cheerio')
+const request = require('request')
+const acorn = require('acorn')
+const escodegen = require('escodegen')
+
+const URL = 'http://d.defold.com/stable/'
+
+const args = JSON.parse(fs.readFileSync('/dev/stdin').toString())
+
+request(URL, function (error, response, body) {
+  if (error)
+    throw new Error('Failed to fetch defold download site: ' + error)
+  if (response.statusCode != 200)
+    throw new Error('Failed to fetch defold download site, http status = ' + response.statusCode)
+
+  const $ = cheerio.load(body)
+  const ast = acorn.parse($('script#templ-releases').next().html())
+  const code = escodegen.generate(ast.body[0].declarations[0].init)
+  const model = eval('(' + code + ')')
+  //console.dir(model)
+
+  const results = []
+
+  for (let release of model.releases) {
+    if (release.sha1 == args.version.sha1)
+      break
+    const bobs = release.files.filter(f => f.path.endsWith('bob.jar'))
+    if (bobs.length !== 0) {
+      results.push({tag: release.tag, commit: release.sha1, url: url.resolve(URL, bobs[0].path)})
+    }
+  }
+
+  process.stdout.write(JSON.stringify(results))
+})
+
