@@ -25,12 +25,11 @@ request(URL, function (error, response, body) {
   const results = []
 
   for (let release of model.releases) {
+    const bobs = release.files.filter(f => f.path.endsWith('bob.jar'))
+    if (bobs.length !== 0)
+      results.push({tag: release.tag, commit: release.sha1, url: url.resolve(URL, bobs[0].path)})
     if (release.sha1 == args.version.sha1)
       break
-    const bobs = release.files.filter(f => f.path.endsWith('bob.jar'))
-    if (bobs.length !== 0) {
-      results.push({tag: release.tag, commit: release.sha1, url: url.resolve(URL, bobs[0].path)})
-    }
   }
 
   process.stdout.write(JSON.stringify(results))
