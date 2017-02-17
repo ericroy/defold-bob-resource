@@ -19,12 +19,16 @@ request(URL, function (error, response, body) {
   const $ = cheerio.load(body)
   const ast = acorn.parse($('script#templ-releases').next().html())
   const code = escodegen.generate(ast.body[0].declarations[0].init)
-  const model = eval('(' + code + ')')
-  //console.dir(model)
+  const releases = eval('(' + code + ')').releases
+
+  // If no specific version was requested, then just return the latest version
+  if (!args.version || !args.version.sha1) {
+    releases = releases.slice(0, 1)
+  }
 
   const results = []
 
-  for (let release of model.releases) {
+  for (let release of releases) {
     const bobs = release.files.filter(f => f.path.endsWith('bob.jar'))
     if (bobs.length !== 0)
       results.push({tag: release.tag, commit: release.sha1, url: url.resolve(URL, bobs[0].path)})
