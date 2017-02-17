@@ -15,7 +15,12 @@ request({
   if (response.statusCode != 200)
     throw new Error('Failed to fetch bob the builder, http status = ' + response.statusCode)
 
-  fs.writeFileSync(path.join(outDir, path.basename(args.version.url)), body, {
+
+  const baseName = path.basename(args.version.url)
+  const outPath = path.join(outDir, baseName)
+  process.stderr.write('writing ' + baseName + ' to: ' + outPath + '\n')
+
+  fs.writeFileSync(outPath, body, {
     encoding: null,
     flag: 'wb'
   })
